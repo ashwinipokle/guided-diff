@@ -17,7 +17,7 @@ from torchvision.datasets import VisionDataset
 from torchvision.datasets.utils import download_and_extract_archive
 from torchvision.datasets.folder import is_image_file
 from torch.utils.data import ConcatDataset
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 import numpy as np
 
 from typing import Optional, Callable, List, Tuple, Dict, Any
@@ -321,7 +321,7 @@ def get_mvtec_orig_data(root,
     combined = ConcatDataset(all_datasets)
     return combined
 
-def get_mvtec_train_data(size=256, root='data/mvtec-ad/',
+def get_mvtec_train_data(batch_size,  deterministic=False, size=256, root='data/mvtec-ad/',
                  download=True,
                  pin_memory=False,
                  return_mask=False):
@@ -335,7 +335,7 @@ def get_mvtec_train_data(size=256, root='data/mvtec-ad/',
     target_transform = None
     mask_transform = transforms.ToTensor()
 
-    return get_mvtec_orig_data(root=root,
+    data = get_mvtec_orig_data(root=root,
                  train = True,
                  transform = transforms.Compose(init_transforms),
                  target_transform = target_transform,
@@ -343,6 +343,10 @@ def get_mvtec_train_data(size=256, root='data/mvtec-ad/',
                  download = download,
                  pin_memory = pin_memory,
                  return_mask = return_mask)
+    return DataLoader(data, batch_size=batch_size,
+                          num_workers=2, shuffle=False if deterministic else True,
+                            drop_last=True)
+
 
 def get_mvtec_train_subset_data(size=256, root='data/mvtec-ad/',
                  download=True,
